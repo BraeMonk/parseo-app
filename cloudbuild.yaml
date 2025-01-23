@@ -9,10 +9,11 @@ steps:
     - 'PROJECT_ID=$_PROJECT_ID'
 - name: 'gcr.io/cloud-builders/gcloud'
   args: ['run', 'deploy', 'seo-analyzer', 
-         '--image', 'gcr.io/$_PROJECT_ID/seo-analyzer:latest',
-         '--platform', 'managed',
-         '--region', 'us-central1',
-         '--allow-unauthenticated']
+          '--image', 'gcr.io/$_PROJECT_ID/seo-analyzer:latest',
+          '--platform', 'managed',
+          '--region', 'us-central1',
+          '--allow-unauthenticated',
+          '--timeout', '600']  # Extend the timeout to 300 seconds
 
 substitutions:
   _PROJECT_ID: parseo-app
