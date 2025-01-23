@@ -12,7 +12,7 @@ steps:
     '--allow-unauthenticated'
   ]
 options:
-  logging: CLOUD_LOGGING_ONLY
+  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
   service_account: parseo2-0@parseopy.iam.gserviceaccount.com
 images:
   - 'gcr.io/$PROJECT_ID/seo-analysis-api:$COMMIT_SHA'
