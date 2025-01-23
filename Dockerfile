@@ -11,9 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the Python script and any other dependencies
 COPY . .
 
-# Expose the port (default for Flask apps)
+# Expose the port
 EXPOSE 8080
 
 # Set the CMD to run the application
-CMD ["python", "seo_analyzer.py"]
-
+CMD ["python", "api.py"]
