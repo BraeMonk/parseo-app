@@ -2,7 +2,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'gcr.io/$PROJECT_ID/seo-analyzer:latest', '.']
   env:
-    - 'PROJECT_ID=$_PROJECT_ID'
+    - 'PROJECT_ID=parseo-app'
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/seo-analyzer:latest']
   env:
@@ -11,7 +11,9 @@ steps:
   args: ['run', 'deploy', 'seo-analyzer', 
           '--image', 'gcr.io/$_PROJECT_ID/seo-analyzer:latest',
           '--platform', 'managed',
-          '--region', 'us-central1']  # Change region as needed
+          '--region', 'us-central1',  # Change region as needed
+          '--allow-unauthenticated']
 
 substitutions:
-  _PROJECT_ID: ParseoPy
+  _PROJECT_ID: parseo-app
+
