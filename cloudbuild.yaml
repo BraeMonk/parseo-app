@@ -13,7 +13,6 @@ steps:
   ]
 options:
   default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
-  logging: CLOUD_LOGGING_ONLY
 logsBucket: gs://parseo-app
 images:
   - 'gcr.io/parseopy/parseo-app:$COMMIT_SHA'
