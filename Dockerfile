@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 8080
 
 # Set the CMD to run the application
-CMD ["python", "seo_analyzer.py"]
+CMD ["python", "app.py"]
