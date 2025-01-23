@@ -1,10 +1,8 @@
 import os
-import json
 import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
-from google.oauth2 import service_account
 from datetime import datetime
 
 # Import your existing SEO analysis code
@@ -14,15 +12,6 @@ from seo_analyzer import SEOAnalyzer, initialize_nltk
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# Google Cloud Service Account Authentication
-try:
-    credentials = service_account.Credentials.from_service_account_file(
-        'D:\\ParseoAppOfficial\\parseopy-ddb753ab8b41.json'
-    )
-except Exception as auth_error:
-    logger.error(f"Authentication error: {auth_error}")
-    credentials = None
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -69,7 +58,6 @@ def analyze_url():
         
         # Transform analysis to match SEOAnalysisResponse model
         response = {
-            "url": url,
             "keywords": analysis.get('keywords', []),
             "content": {
                 "readabilityScore": analysis['content_stats']['readability_score'],
@@ -122,4 +110,4 @@ def _interpret_readability(score):
         return "Very Difficult"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=False)
