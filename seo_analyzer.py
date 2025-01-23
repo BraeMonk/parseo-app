@@ -225,33 +225,8 @@ class SEOAnalyzer:
         except Exception as e:
             print(f"Error writing report: {e}")
 
-def main():
-    print("SEO Analysis Tool")
-    print("================")
-    
-    # Initialize NLTK
-    print("Initializing NLTK...")
+def setup():
     initialize_nltk()
-    
-    analyzer = SEOAnalyzer()
-    
-    urls = input("Enter URLs to analyze (comma-separated): ").split(',')
-    urls = [url.strip() for url in urls]
-    
-    report_dir = input("Enter report directory (press Enter for current directory): ").strip()
-    if not report_dir:
-        report_dir = os.getcwd()
+    return SEOAnalyzer()
 
-    report_filename = input("Enter the filename for the report (e.g. file_name.txt): ").strip()    
-    report_file = os.path.join(report_dir, report_filename)
-    
-    for url in urls:
-        print(f"\nAnalyzing {url}...")
-        analysis = analyzer.analyze_url(url, report_file)
-        if analysis:
-            print(f"Analysis completed. Top keywords: {', '.join(analysis['keywords'])}")
-    
-    print(f"\nAnalysis complete. Report saved to: {report_file}")
-
-if __name__ == "__main__":
-    main()
+analyzer = setup()
