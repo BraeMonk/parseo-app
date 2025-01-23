@@ -1,20 +1,15 @@
+<antArtifact identifier="cloudbuild" type="application/vnd.ant.code" title="Cloud Build Configuration">
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/seo-analyzer:latest', '.']
-  env:
-    - 'PROJECT_ID=$_PROJECT_ID'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/seo-analysis-api', '.']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/$PROJECT_ID/seo-analyzer:latest']
-  env:
-    - 'PROJECT_ID=$_PROJECT_ID'
+  args: ['push', 'gcr.io/$PROJECT_ID/seo-analysis-api']
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['run', 'deploy', 'seo-analyzer', 
-          '--image', 'gcr.io/$_PROJECT_ID/seo-analyzer:latest',
-          '--platform', 'managed',
-          '--region', 'us-central1',
-          '--allow-unauthenticated',
-          '--timeout', '600']  # Extend the timeout to 300 seconds
-
-substitutions:
-  _PROJECT_ID: parseo-app
+  args: [
+    'run', 'deploy', 'seo-analysis-api', 
+    '--image', 'gcr.io/$PROJECT_ID/seo-analysis-api',
+    '--platform', 'managed',
+    '--region', 'us-central1',
+    '--allow-unauthenticated'
+  ]
 
