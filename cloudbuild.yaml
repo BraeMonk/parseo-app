@@ -16,5 +16,3 @@ steps:
 
 substitutions:
   _PROJECT_ID: parseo-app
-
-
