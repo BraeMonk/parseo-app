@@ -1,12 +1,12 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/parseopy/parseo-app:$COMMIT_SHA', '.']
+  args: ['build', '-t', 'gcr.io/parseopy/parseo-app/parseo-seo:$COMMIT_SHA', '.']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/parseopy/parseo-app:$COMMIT_SHA']
+  args: ['push', 'gcr.io/parseopy/parseo-app/parseo-seo:$COMMIT_SHA']
 - name: 'gcr.io/cloud-builders/gcloud'
   args: [
     'run', 'deploy', 'seo-analysis-api', 
-    '--image', 'gcr.io/parseopy/parseo-app:$COMMIT_SHA',
+    '--image', 'gcr.io/parseopy/parseo-app/parseo-seo:$COMMIT_SHA',
     '--platform', 'managed',
     '--region', 'us-central1',
     '--allow-unauthenticated'
@@ -17,5 +17,5 @@ options:
 serviceAccount: parseo2-0@parseopy.iam.gserviceaccount.com
 logsBucket: gs://parseo-app
 images:
-  - 'gcr.io/parseopy/parseo-app:$COMMIT_SHA'
+  - 'gcr.io/parseopy/parseo-app/parseo-seo:$COMMIT_SHA'
 timeout: '1800s'
