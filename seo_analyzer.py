@@ -1,8 +1,6 @@
 import os
 import re
 import requests
-import time
-from lxml import html
 from bs4 import BeautifulSoup
 from collections import Counter, defaultdict
 from datetime import datetime
@@ -23,7 +21,6 @@ def initialize_nltk():
 class SEOAnalyzer:
     def __init__(self):
         self.stemmer = PorterStemmer()
-        # Add common English stop words
         self.stop_words = set(stopwords.words('english')).union({
             'the', 'and', 'is', 'in', 'to', 'it', 'that', 'we', 'for', 'an', 'are', 
             'by', 'be', 'this', 'with', 'i', 'you', 'not', 'or', 'on', 'your'
@@ -35,12 +32,8 @@ class SEOAnalyzer:
         """Clean and normalize text without using NLTK tokenizer."""
         if not text:
             return []
-        # Convert to lowercase and replace non-word characters with spaces
         text = re.sub(r'[^\w\s]', ' ', text.lower())
-        # Split on whitespace and filter
-        words = [word for word in text.split() 
-                if word and word not in self.stop_words and len(word) > 2]
-        # Stem words
+        words = [word for word in text.split() if word and word not in self.stop_words and len(word) > 2]
         return [self.stemmer.stem(word) for word in words]
 
     def fetch_url_content(self, url):
@@ -61,14 +54,17 @@ class SEOAnalyzer:
         text = soup.get_text(separator=' ', strip=True)
         try:
             readability = flesch_reading_ease(text)
+            readability_interpretation = self.get_readability_interpretation(readability)
         except:
             readability = 0
-            
+            readability_interpretation = "Unable to calculate"
+        
         return {
-            'readability_score': readability,
-            'word_count': len(text.split()),
-            'heading_distribution': self.count_headings(soup),
-            'content_tags': {
+            'readabilityScore': readability,
+            'wordCount': len(text.split()),
+            'readabilityInterpretation': readability_interpretation,
+            'headingDistribution': self.count_headings(soup),
+            'contentTags': {
                 'strong': len(soup.find_all('strong')),
                 'em': len(soup.find_all('em')),
                 'blockquote': len(soup.find_all('blockquote')),
@@ -76,15 +72,24 @@ class SEOAnalyzer:
             }
         }
 
+    def get_readability_interpretation(self, readability_score):
+        """Interpret readability score."""
+        if readability_score > 60:
+            return "Good"
+        elif readability_score > 40:
+            return "Fair"
+        else:
+            return "Needs Improvement"
+
     def analyze_technical(self, url, soup):
         """Analyze technical SEO elements."""
         return {
             'title': self.get_meta_content(soup, 'title'),
-            'meta_description': self.get_meta_content(soup, 'description'),
+            'metaDescription': self.get_meta_content(soup, 'description'),
             'canonical': self.get_canonical(soup),
-            'mobile_friendly': bool(soup.find('meta', attrs={'name': 'viewport'})),
-            'ssl_certificate': self.check_ssl(url),
-            'structured_data': bool(soup.find_all('script', type='application/ld+json'))
+            'mobileFriendly': bool(soup.find('meta', attrs={'name': 'viewport'})),
+            'ssl': self.check_ssl(url),
+            'structuredData': bool(soup.find_all('script', type='application/ld+json'))
         }
 
     def analyze_links(self, base_url, soup):
@@ -109,8 +114,9 @@ class SEOAnalyzer:
                 continue
                 
         return {
-            'internal_links': internal_links,
-            'external_links': external_links
+            'internalCount': len(internal_links),
+            'externalCount': len(external_links),
+            'totalCount': len(internal_links) + len(external_links)
         }
 
     def get_meta_content(self, soup, meta_name):
@@ -132,51 +138,46 @@ class SEOAnalyzer:
     def check_ssl(self, url):
         """Check if URL uses HTTPS."""
         return url.startswith('https://')
+
     def analyze_url(self, url, report_file=None):
         try:
-            # Step 1: Fetch content from the URL
-            print(f"Fetching content from {url}...")
             content = self.fetch_url_content(url)
             
-            # Step 2: Check for insufficient content
             if not content or len(content) < 100:
                 return {
                     'error': 'Insufficient content',
                     'keywords': [],
-                    'content_stats': {},
-                    'technical_stats': {},
-                    'link_stats': {}
+                    'content': {},
+                    'technical': {},
+                    'links': {},
+                    'performance': {},
+                    'metadata': {}
                 }
             
-            # Step 3: Parse the content
-            print("Parsing content...")
             soup = BeautifulSoup(content, 'lxml')
             text = soup.get_text(separator=' ', strip=True)
             
-            # Step 4: Process text and update keyword library
-            print("Processing text and updating keyword library...")
             cleaned_words = self.clean_text(text)
-            for word in cleaned_words:
-                self.keyword_library[word] += 1
-            
-            # Step 5: Generate keywords
-            print("Generating keywords...")
             word_freq = Counter(cleaned_words)
             keywords = [word for word, _ in word_freq.most_common(10)]
             
-            # Step 6: Perform SEO analysis
-            print("Performing SEO analysis...")
             analysis = {
                 'url': url,
                 'keywords': keywords,
-                'content_stats': self.analyze_content(soup),
-                'technical_stats': self.analyze_technical(url, soup),
-                'link_stats': self.analyze_links(url, soup)
+                'content': self.analyze_content(soup),
+                'technical': self.analyze_technical(url, soup),
+                'links': self.analyze_links(url, soup),
+                'performance': {
+                    'totalResources': len(soup.find_all('script')) + len(soup.find_all('link')) + len(soup.find_all('img')),
+                    'totalSize': len(content)  # Approximate total size (could be refined further)
+                },
+                'metadata': {
+                    'analysisDuration': time.time() - time.time(),  # This can be adjusted to actual time taken
+                    'analyzedAt': datetime.now().isoformat()
+                }
             }
             
-            # Step 7: Write report if required
             if report_file:
-                print("Writing report...")
                 self.write_report(analysis, report_file)
                 
             return analysis
@@ -186,13 +187,14 @@ class SEOAnalyzer:
             return {
                 'error': str(e),
                 'keywords': [],
-                'content_stats': {},
-                'technical_stats': {},
-                'link_stats': {}
+                'content': {},
+                'technical': {},
+                'links': {},
+                'performance': {},
+                'metadata': {}
             }
 
     def write_report(self, analysis, report_file):
-        """Write analysis results to file."""
         try:
             os.makedirs(os.path.dirname(report_file), exist_ok=True)
             with open(report_file, 'a', encoding='utf-8') as f:
@@ -201,24 +203,28 @@ class SEOAnalyzer:
                 f.write(f"Generated on: {datetime.now()}\n")
                 f.write(f"{'='*50}\n\n")
                 
-                # Write Keywords
                 f.write("Keywords\n--------\n")
                 f.write(', '.join(analysis['keywords']) + '\n\n')
                 
-                # Write Content Statistics
                 f.write("Content Statistics\n------------------\n")
-                for key, value in analysis['content_stats'].items():
+                for key, value in analysis['content'].items():
                     f.write(f"{key}: {value}\n")
                 
-                # Write Technical Analysis
                 f.write("\nTechnical Analysis\n-------------------\n")
-                for key, value in analysis['technical_stats'].items():
+                for key, value in analysis['technical'].items():
                     f.write(f"{key}: {value}\n")
                 
-                # Write Link Analysis
                 f.write("\nLink Analysis\n-------------\n")
-                f.write(f"Internal Links: {len(analysis['link_stats']['internal_links'])}\n")
-                f.write(f"External Links: {len(analysis['link_stats']['external_links'])}\n")
+                f.write(f"Internal Links: {analysis['links']['internalCount']}\n")
+                f.write(f"External Links: {analysis['links']['externalCount']}\n")
+                
+                f.write("\nPerformance\n-----------\n")
+                f.write(f"Total Resources: {analysis['performance']['totalResources']}\n")
+                f.write(f"Total Size: {analysis['performance']['totalSize']} bytes\n")
+                
+                f.write("\nMetadata\n--------\n")
+                f.write(f"Analysis Duration: {analysis['metadata']['analysisDuration']} seconds\n")
+                f.write(f"Analyzed At: {analysis['metadata']['analyzedAt']}\n")
                 
                 f.write("\n" + "="*50 + "\n")
                 
@@ -227,6 +233,10 @@ class SEOAnalyzer:
 
 def setup():
     initialize_nltk()
+    return SEOAnalyzer()
+
+analyzer = setup()
+
     return SEOAnalyzer()
 
 analyzer = setup()
